@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <title>Job Application Track</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #bb86fc;
+            --text-primary: #e0e0e0;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+
+            --status-applied: #2196f3;
+            --status-rejected: #f44336;
+            --status-accepted: #4caf50;
+            --status-assessment: #ff9800;
+            --status-declined: #9e9e9e;
+            --status-offer: #8bc34a;
+            --status-ghosted: #607d8b;
+            --status-technical: #9c27b0;
+            --status-final: #e91e63;
+            --status-screening: #00bcd4;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: var(--surface-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 0;
+        }
+
+        nav button:hover,
+        nav button.active {
+            color: var(--primary-color);
+        }
+
+        .util-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .util-btn:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Buttons & Forms */
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            pointer-events: none;
+            color: #fff;
+            background-color: #444;
+        }
+
+        .badge-link {
+            pointer-events: auto;
+            cursor: pointer;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+        }
+
+        .badge-link:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .field-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+
+        .field-value {
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .icon-btn:hover {
+            color: var(--primary-color);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group.flex-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .hidden-details {
+            display: none;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">Job Application Track</div>
+        <div class="nav-container">
+            <nav style="display: flex; gap: 1.5rem;">
+                <button class="active" onclick="switchTab('jobs')">Job Applications</button>
+                <button onclick="switchTab('stats')">Stats</button>
+                <button onclick="switchTab('redundant')">Redundant Info</button>
+                <button onclick="switchTab('resume')">Custom Resume</button>
+            </nav>
+            <div style="border-left: 1px solid var(--border-color); padding-left: 1.5rem; display: flex; gap: 0.5rem;">
+                <button class="util-btn" onclick="exportJSON()" title="Download Backup">⭳ Export JSON</button>
+                <input type="file" id="import-file" accept=".json" style="display: none;" onchange="importJSON(event)">
+                <button class="util-btn" onclick="document.getElementById('import-file').click()" title="Load Backup">⭱
+                    Import JSON</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="jobs" class="tab-content active">
+            <button class="btn-primary" onclick="openJobModal()">+ New Job Application</button>
+            <div id="jobs-container"></div>
+        </section>
+
+        <section id="stats" class="tab-content">
+            <div class="stats-grid" id="stats-container"></div>
+        </section>
+
+        <section id="redundant" class="tab-content">
+            <button class="btn-primary" onclick="openRedundantModal()">+ Add Redundant Info</button>
+            <div id="redundant-container"></div>
+        </section>
+
+        <section id="resume" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Resume Configuration</h2>
+                <a href="https://www.overleaf.com/project/6998cc0613533a9e2d2c0cf7" target="_blank" class="btn-primary"
+                    style="text-decoration:none;">Overleaf Resume</a>
+            </div>
+            <div id="resume-container"></div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="job-modal">
+        <div class="modal">
+            <h2 id="job-modal-title">New Job Application</h2>
+            <form id="job-form">
+                <input type="hidden" id="job-index">
+                <div class="form-group">
+                    <label class="field-label">Applied Date</label>
+                    <input type="date" id="job-date" required>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Company</label>
+                    <input type="text" id="job-company" required>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Location</label>
+                    <input type="text" id="job-location">
+                </div>
+                <div class="form-group flex-row">
+                    <div style="flex: 1;">
+                        <label class="field-label">Currency</label>
+                        <select id="job-currency">
+                            <option value="INR">INR</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    <div style="flex: 2;">
+                        <label class="field-label">Mentioned Package Amount</label>
+                        <input type="text" id="job-package" placeholder="e.g. 10,00,000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Role</label>
+                    <input type="text" id="job-role" required>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Status</label>
+                    <select id="job-status">
+                        <option value="Applied">Applied</option>
+                        <option value="Online Assessment">Online Assessment</option>
+                        <option value="Screening Round">Screening Round</option>
+                        <option value="Technical Round">Technical Round</option>
+                        <option value="Final Round">Final Round</option>
+                        <option value="Offer Received">Offer Received</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Declined">Declined</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Ghosted">Ghosted</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Application Status Page (Link)</label>
+                    <input type="url" id="job-link">
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Other Info</label>
+                    <textarea id="job-other"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Job Description</label>
+                    <textarea id="job-desc"></textarea>
+                </div>
+                <div class="form-group flex-row">
+                    <div style="flex: 1;">
+                        <label class="field-label">Credential Email</label>
+                        <input type="text" id="job-cred-email" value="saurabhsingh29g@gmail.com">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="field-label">Credential Password</label>
+                        <input type="text" id="job-cred-pass" value="Singhaa@29">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Updates</label>
+                    <textarea id="job-updates"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('job-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary" style="margin: 0;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="redundant-modal">
+        <div class="modal">
+            <h2 id="redundant-modal-title">Add Redundant Info</h2>
+            <form id="redundant-form">
+                <input type="hidden" id="redundant-index">
+                <div class="form-group">
+                    <label class="field-label">Field Name</label>
+                    <input type="text" id="redundant-field" required>
+                </div>
+                <div class="form-group">
+                    <label class="field-label">Value</label>
+                    <textarea id="redundant-value" required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeModal('redundant-modal')">Cancel</button>
+                    <button type="submit" class="btn-primary" style="margin: 0;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- DEFAULT DATA STATE ---
+        const defaultJobs = [
+            { id: 1, date: '2026-04-01', company: 'Philips', location: 'Bengaluru', currency: 'INR', package: '', role: 'Software Engineer I', status: 'Applied', link: '', other: '', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' },
+            { id: 2, date: '2026-04-01', company: 'TD Synnex', location: 'Chennai', currency: 'INR', package: '', role: 'Software Developer I', status: 'Applied', link: 'https://synnex.wd5.myworkdayjobs.com/en-US/tdsynnexcareers/userHome?Job_Application_ID=c4c17a80536090011bb74bb4ac1c0001', other: '', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' },
+            { id: 3, date: '2026-04-01', company: 'Brightstar AI', location: 'Miami', currency: 'USD', package: '', role: 'Software Engineer, Digital', status: 'Applied', link: '', other: '', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' },
+            { id: 4, date: '2026-03-27', company: 'BIK.', location: 'Bangalore', currency: 'INR', package: '', role: 'Software Engineer - 1', status: 'Applied', link: '', other: '', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' },
+            { id: 5, date: '2026-03-27', company: 'Delaware', location: 'India', currency: 'INR', package: '', role: 'Junior AI Engineer', status: 'Applied', link: 'https://www.delaware.pro/en-in/careers/jobs/ai-engineer', other: '', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' },
+            { id: 6, date: '2026-01-03', company: 'NTT Data', location: 'Unknown', currency: 'INR', package: '4-5 LPA', role: 'Associate Software Applications Development Engineer', status: 'Rejected', link: 'https://careers.services.global.ntt/global/en/myprofile', other: 'R-139894', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singh@29NTT', updates: '05-Feb-2026: Screening Process mail received' },
+            { id: 7, date: '2026-01-02', company: 'Swiggy', location: 'Bengaluru', currency: 'INR', package: '', role: 'Associate Software Development Engineer', status: 'Applied', link: '', other: 'Requisition ID: 23631', desc: '', email: 'saurabhsingh29g@gmail.com', pass: 'Singhaa@29', updates: '' }
+        ];
+
+        const defaultRedundantData = [
+            { field: 'Permanent Address', value: '405/41 Chaknauniya ADA Colony Naini Prayagraj, Allahabad-211008, Uttar Pradesh, India' },
+            { field: 'Current Address', value: '276 Sector B Scheme No 136 Bulandshahr Indore, Indore-452010, Madhya Pradesh, India' },
+            { field: 'Email Address', value: 'saurabhsingh29g@gmail.com' },
+            { field: 'Current CTC', value: '485000' },
+            { field: 'LinkedIn', value: 'https://www.linkedin.com/in/saurabhsinghaa/' },
+            { field: 'Github', value: 'https://github.com/saurabhsinghaa' },
+            { field: 'Portfolio Website', value: 'https://saurabhsinghaa.github.io/portfolio.ss/' }
+        ];
+
+        const defaultResumeData = {
+            prompt: "This is the job description for a job role in a company:\n\nJOB DESCRIPTION\n\nI am also giving the latex code of my resume, enhance it as per the job description. Following is my resume:\n\n\\documentclass{resume}\n...",
+            correction: "use \\textbf{} in place of **text**"
+        };
+
+        // --- LOAD DATA FROM LOCAL STORAGE ---
+        let jobs = JSON.parse(localStorage.getItem('jat_jobs')) || defaultJobs;
+        let redundantData = JSON.parse(localStorage.getItem('jat_redundant')) || defaultRedundantData;
+        let resumeData = JSON.parse(localStorage.getItem('jat_resume')) || defaultResumeData;
+
+        // --- SAVE DATA TO LOCAL STORAGE ---
+        function saveData() {
+            localStorage.setItem('jat_jobs', JSON.stringify(jobs));
+            localStorage.setItem('jat_redundant', JSON.stringify(redundantData));
+            localStorage.setItem('jat_resume', JSON.stringify(resumeData));
+        }
+
+        // --- JSON IMPORT/EXPORT ---
+        function exportJSON() {
+            const data = {
+                jobs: jobs,
+                redundantData: redundantData,
+                resumeData: resumeData
+            };
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'job_tracker_backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.jobs) jobs = data.jobs;
+                    if (data.redundantData) redundantData = data.redundantData;
+                    if (data.resumeData) resumeData = data.resumeData;
+
+                    saveData();
+                    renderJobs();
+
+                    // Reset tab to jobs
+                    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    document.querySelector('nav button').classList.add('active'); // First button
+                    document.getElementById('jobs').classList.add('active');
+
+                    alert('Data imported successfully!');
+                } catch (err) {
+                    alert('Error parsing JSON file. Please make sure it is a valid backup file.');
+                }
+            };
+            reader.readAsText(file);
+            // clear input value so the same file can be selected again if needed
+            event.target.value = '';
+        }
+
+        // --- UTILS ---
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+        };
+
+        const getStatusColor = (status) => {
+            const key = status.replace(/\s+/g, '').toLowerCase();
+            const colors = {
+                applied: 'var(--status-applied)',
+                rejected: 'var(--status-rejected)',
+                accepted: 'var(--status-accepted)',
+                onlineassessment: 'var(--status-assessment)',
+                declined: 'var(--status-declined)',
+                offerreceived: 'var(--status-offer)',
+                ghosted: 'var(--status-ghosted)',
+                technicalround: 'var(--status-technical)',
+                finalround: 'var(--status-final)',
+                screeninground: 'var(--status-screening)'
+            };
+            return colors[key] || '#444';
+        };
+
+        function toggleDetails(index) {
+            const detailsDiv = document.getElementById(`details-${index}`);
+            const btn = document.getElementById(`expand-btn-${index}`);
+            if (detailsDiv.style.display === 'block') {
+                detailsDiv.style.display = 'none';
+                btn.innerHTML = '▼';
+            } else {
+                detailsDiv.style.display = 'block';
+                btn.innerHTML = '▲';
+            }
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'jobs') renderJobs();
+            if (tabId === 'stats') renderStats();
+            if (tabId === 'redundant') renderRedundant();
+            if (tabId === 'resume') renderResume();
+        }
+
+        // --- RENDERERS ---
+        function renderJobs() {
+            const container = document.getElementById('jobs-container');
+            container.innerHTML = '';
+
+            jobs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            jobs.forEach((job, index) => {
+                const packageStr = job.package ? `${job.currency} ${job.package}` : 'Not Mentioned';
+
+                const statusLink = job.link
+                    ? `<a href="${job.link}" target="_blank" class="badge badge-link">${job.company} Portal</a>`
+                    : `<span class="badge" style="background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-secondary);">NA (will get to know in saurabhsingh29g@gmail.com)</span>`;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div>
+                            <span class="badge" style="background-color: var(--surface-color); border: 1px solid var(--border-color);">${formatDate(job.date)}</span>
+                            <span class="badge" style="margin-left: 0.5rem;">${job.company}</span>
+                            <span class="badge" style="margin-left: 0.5rem; background-color: var(--border-color);">${job.role}</span>
+                        </div>
+                        <div>
+                            <span class="badge" style="background-color: ${getStatusColor(job.status)}">${job.status}</span>
+                            <button class="icon-btn" onclick="openJobModal(${index})" title="Edit Application">✎</button>
+                            <button class="icon-btn" id="expand-btn-${index}" onclick="toggleDetails(${index})" title="Expand/Collapse">▼</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-grid" style="margin-bottom: 0;">
+                        <div><div class="field-label">Location</div><div class="field-value">${job.location || '-'}</div></div>
+                        <div><div class="field-label">Application Status Page</div><div class="field-value">${statusLink}</div></div>
+                    </div>
+
+                    <div id="details-${index}" class="hidden-details">
+                        <hr style="border-color: var(--border-color); margin-bottom: 1rem;">
+                        <div class="card-grid">
+                            <div><div class="field-label">Mentioned Package</div><div class="field-value">${packageStr}</div></div>
+                            <div><div class="field-label">Credentials</div><div class="field-value" style="font-family: monospace;">U: ${job.email}<br>P: ${job.pass}</div></div>
+                        </div>
+                        ${job.other || job.desc || job.updates ? `<div class="card-grid">` : ''}
+                            ${job.other ? `<div><div class="field-label">Other Info</div><div class="field-value">${job.other}</div></div>` : ''}
+                            ${job.desc ? `<div><div class="field-label">Job Description</div><div class="field-value">${job.desc}</div></div>` : ''}
+                            ${job.updates ? `<div><div class="field-label">Updates</div><div class="field-value">${job.updates.replace(/\n/g, '<br>')}</div></div>` : ''}
+                        ${job.other || job.desc || job.updates ? `</div>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderStats() {
+            const container = document.getElementById('stats-container');
+            const total = jobs.length;
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            const lastWeekCount = jobs.filter(j => new Date(j.date) >= oneWeekAgo).length;
+            const rejected = jobs.filter(j => j.status === 'Rejected').length;
+            const responseRate = total > 0 ? (((total - jobs.filter(j => j.status === 'Applied' || j.status === 'Ghosted').length) / total) * 100).toFixed(1) : 0;
+
+            container.innerHTML = `
+                <div class="card stat-card">
+                    <div class="field-label">Total Applications</div>
+                    <div class="stat-number">${total}</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="field-label">Applied Last 7 Days</div>
+                    <div class="stat-number">${lastWeekCount}</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="field-label">Response Rate</div>
+                    <div class="stat-number">${responseRate}%</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="field-label">Rejections</div>
+                    <div class="stat-number" style="color: var(--status-rejected)">${rejected}</div>
+                </div>
+            `;
+        }
+
+        function renderRedundant() {
+            const container = document.getElementById('redundant-container');
+            container.innerHTML = '';
+            redundantData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div class="field-label">${item.field}</div>
+                            <div class="field-value">${item.value}</div>
+                        </div>
+                        <div>
+                            <button class="icon-btn" onclick="copyToClipboard('${item.value.replace(/'/g, "\\'")}')" title="Copy">📋</button>
+                            <button class="icon-btn" onclick="openRedundantModal(${index})" title="Edit">✎</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderResume() {
+            const container = document.getElementById('resume-container');
+            container.innerHTML = `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin-top:0;">Resume Prompt</h3>
+                        <button class="icon-btn" onclick="copyToClipboard(resumeData.prompt)" title="Copy">📋</button>
+                    </div>
+                    <textarea style="height: 150px; margin-bottom:1rem;" onchange="updateResumeData('prompt', this.value)">${resumeData.prompt}</textarea>
+                </div>
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin-top:0;">Bold Correction Prompt</h3>
+                        <button class="icon-btn" onclick="copyToClipboard(resumeData.correction)" title="Copy">📋</button>
+                    </div>
+                    <textarea style="height: 80px;" onchange="updateResumeData('correction', this.value)">${resumeData.correction}</textarea>
+                </div>
+            `;
+        }
+
+        function updateResumeData(key, value) {
+            resumeData[key] = value;
+            saveData();
+        }
+
+        // --- MODALS & FORMS ---
+        function openJobModal(index = null) {
+            const modal = document.getElementById('job-modal');
+            const form = document.getElementById('job-form');
+            form.reset();
+
+            if (index !== null) {
+                const job = jobs[index];
+                document.getElementById('job-modal-title').innerText = "Edit Job Application";
+                document.getElementById('job-index').value = index;
+                document.getElementById('job-date').value = job.date;
+                document.getElementById('job-date').readOnly = true;
+                document.getElementById('job-company').value = job.company;
+                document.getElementById('job-company').readOnly = true;
+                document.getElementById('job-location').value = job.location;
+                document.getElementById('job-currency').value = job.currency;
+                document.getElementById('job-package').value = job.package;
+                document.getElementById('job-role').value = job.role;
+                document.getElementById('job-status').value = job.status;
+                document.getElementById('job-link').value = job.link;
+                document.getElementById('job-other').value = job.other;
+                document.getElementById('job-desc').value = job.desc;
+                document.getElementById('job-cred-email').value = job.email;
+                document.getElementById('job-cred-pass').value = job.pass;
+                document.getElementById('job-updates').value = job.updates;
+            } else {
+                document.getElementById('job-modal-title').innerText = "New Job Application";
+                document.getElementById('job-index').value = "";
+                document.getElementById('job-date').readOnly = false;
+                document.getElementById('job-company').readOnly = false;
+                document.getElementById('job-cred-email').value = "saurabhsingh29g@gmail.com";
+                document.getElementById('job-cred-pass').value = "Singhaa@29";
+            }
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('job-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const index = document.getElementById('job-index').value;
+            const jobObj = {
+                date: document.getElementById('job-date').value,
+                company: document.getElementById('job-company').value,
+                location: document.getElementById('job-location').value,
+                currency: document.getElementById('job-currency').value,
+                package: document.getElementById('job-package').value,
+                role: document.getElementById('job-role').value,
+                status: document.getElementById('job-status').value,
+                link: document.getElementById('job-link').value,
+                other: document.getElementById('job-other').value,
+                desc: document.getElementById('job-desc').value,
+                email: document.getElementById('job-cred-email').value,
+                pass: document.getElementById('job-cred-pass').value,
+                updates: document.getElementById('job-updates').value
+            };
+
+            if (index === "") {
+                jobObj.id = Date.now();
+                jobs.push(jobObj);
+            } else {
+                jobObj.id = jobs[index].id;
+                jobs[index] = jobObj;
+            }
+
+            saveData(); // Save to local storage
+            closeModal('job-modal');
+            renderJobs();
+        });
+
+        function openRedundantModal(index = null) {
+            const modal = document.getElementById('redundant-modal');
+            const form = document.getElementById('redundant-form');
+            form.reset();
+
+            if (index !== null) {
+                const item = redundantData[index];
+                document.getElementById('redundant-modal-title').innerText = "Edit Redundant Info";
+                document.getElementById('redundant-index').value = index;
+                document.getElementById('redundant-field').value = item.field;
+                document.getElementById('redundant-value').value = item.value;
+            } else {
+                document.getElementById('redundant-modal-title').innerText = "Add Redundant Info";
+                document.getElementById('redundant-index').value = "";
+            }
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('redundant-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const index = document.getElementById('redundant-index').value;
+            const itemObj = {
+                field: document.getElementById('redundant-field').value,
+                value: document.getElementById('redundant-value').value
+            };
+
+            if (index === "") redundantData.push(itemObj);
+            else redundantData[index] = itemObj;
+
+            saveData(); // Save to local storage
+            closeModal('redundant-modal');
+            renderRedundant();
+        });
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        // Initialize
+        renderJobs();
+    </script>
+</body>
+
+</html>
