@@ -621,12 +621,59 @@
         function renderStats() {
             const container = document.getElementById('stats-container');
             const total = jobs.length;
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const now = new Date();
 
+            // Date calculations
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(now.getMonth() - 1);
+
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(now.getMonth() - 3);
+
+            // Timeframe counts
             const lastWeekCount = jobs.filter(j => new Date(j.date) >= oneWeekAgo).length;
+            const lastMonthCount = jobs.filter(j => new Date(j.date) >= oneMonthAgo).length;
+            const lastThreeMonthsCount = jobs.filter(j => new Date(j.date) >= threeMonthsAgo).length;
+
             const rejected = jobs.filter(j => j.status === 'Rejected').length;
             const responseRate = total > 0 ? (((total - jobs.filter(j => j.status === 'Applied' || j.status === 'Ghosted').length) / total) * 100).toFixed(1) : 0;
+
+            // --- Probability Logic ---
+            // Estimated probability of converting from a specific stage to an eventual offer
+            const stageProbabilities = {
+                'Applied': 0.02,             // 2%
+                'Online Assessment': 0.05,   // 5%
+                'Screening Round': 0.10,     // 10%
+                'Technical Round': 0.30,     // 30%
+                'Final Round': 0.60,         // 60%
+                // Terminal states or already offered
+                'Offer Received': 1.0,
+                'Accepted': 1.0,
+                'Declined': 0,
+                'Rejected': 0,
+                'Ghosted': 0
+            };
+
+            let chanceOfFailingAll = 1.0;
+            let activeAppsContributed = 0;
+
+            jobs.forEach(job => {
+                const p = stageProbabilities[job.status] || 0;
+                if (p > 0 && p < 1.0) { // Only consider active pipeline
+                    chanceOfFailingAll *= (1 - p);
+                    activeAppsContributed++;
+                }
+            });
+
+            // Calculate final percentage: (1 - chance of failing every single active application)
+            const pipelineSelectionProbability = activeAppsContributed > 0 ? ((1 - chanceOfFailingAll) * 100).toFixed(1) : 0;
+            
+            // If you already have an offer in the system, show 100%
+            const alreadyOffered = jobs.some(j => j.status === 'Offer Received' || j.status === 'Accepted');
+            const displayProbability = alreadyOffered ? '100% (Secured)' : `${pipelineSelectionProbability}%`;
 
             container.innerHTML = `
                 <div class="card stat-card">
@@ -638,8 +685,20 @@
                     <div class="stat-number">${lastWeekCount}</div>
                 </div>
                 <div class="card stat-card">
+                    <div class="field-label">Applied Last 1 Month</div>
+                    <div class="stat-number">${lastMonthCount}</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="field-label">Applied Last 3 Months</div>
+                    <div class="stat-number">${lastThreeMonthsCount}</div>
+                </div>
+                <div class="card stat-card">
                     <div class="field-label">Response Rate</div>
                     <div class="stat-number">${responseRate}%</div>
+                </div>
+                <div class="card stat-card" title="Estimated chance of at least 1 offer from current active pipeline">
+                    <div class="field-label">Pipeline Success Prob.</div>
+                    <div class="stat-number" style="color: var(--status-offer); font-size: 2.2rem;">${displayProbability}</div>
                 </div>
                 <div class="card stat-card">
                     <div class="field-label">Rejections</div>
